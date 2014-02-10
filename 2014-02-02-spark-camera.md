@@ -3,7 +3,7 @@ layout: post
 title:  "Spark Camera's recording meter"
 date:   2014-02-02 21:02:31
 description: "Just when you thought we'd seen every take on a camera app, Spark Camera comes along to prove us all wrong."
-image: "/media/2014-02-02-spark-camera/images/title-image.png"
+image: "/media/2014-02-02-spark-camera/images/title-image.jpg"
 video: true
 video_mp4: "/media/2014-02-02-spark-camera/video/title-video.m4v"
 ---
