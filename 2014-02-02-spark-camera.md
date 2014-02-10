@@ -243,6 +243,6 @@ As you can see there's not a lot of code behind a control like this, there are a
 
 You can [checkout this project on Github](https://github.com/subjc/SparkRecordingCircle).
 
-[^1]: Full disclosure: I work for Itty Bitty Apps, developers of Reveal. 
+[^1]: Full disclosure: I work for [Itty Bitty Apps](http://ittybittyapps.com), developers of [Reveal](http://revealapp.com). 
 [^2]: Ole Begemann did a [great writeup](http://oleb.net/blog/2010/12/animating-drawing-of-cgpath-with-cashapelayer/) (3+ years ago!) on this technique 
 
