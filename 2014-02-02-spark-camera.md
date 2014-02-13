@@ -2,25 +2,31 @@
 layout: post
 title:  "Spark Camera's recording meter"
 date:   2014-02-02 21:02:31
-description: "Just when you thought we'd seen every take on a camera app, Spark Camera comes along to prove us all wrong."
+description: "Deconstructing a minimal camera control that combines form and function."
 image: "/media/2014-02-02-spark-camera/images/title-image.jpg"
 video: true
 video_mp4: "/media/2014-02-02-spark-camera/video/title-video.m4v"
 ---
 
-## Foreword
+## Background
 
 There's no denying that camera apps are in vogue. At the time of writing, a third of the apps in the Best New Apps section of the App Store were in the Photo & Video category and with good reason, camera apps are a fantastic way to express creativity for both the budding filmmaker and the developer behind them. We're going to be looking [Spark Camera](https://www.sparkcamera.com/), one of the standouts of great interface and awesome user experience. 
 
-[Spark Camera](https://www.sparkcamera.com/) was built by design firm [IDEO](http://www.ideo.com/) (pronounced *“eye-dee-oh”*) who have a pretty [illustrious history](http://www.ideo.com/work/mouse-for-apple/). It has an elegant and simple look which combines form and function. In particular we're going to be dissecting the circular progress view which, in one simple circle of colour, displays everything you need to know about your recording.
+[Spark Camera](https://www.sparkcamera.com/) was built by design firm [IDEO](http://www.ideo.com/) (pronounced *“eye-dee-oh”*) who have a pretty [illustrious history](http://www.ideo.com/work/mouse-for-apple/). It has an elegant and simple look which combines form and function. In particular we're going to be dissecting and rebuilding the circular progress view.
+
+## Analysis
+
+[Spark Camera](https://www.sparkcamera.com/)'s recording circle is an aesthetically beautiful control that provides a wealth of information about the current state of the app with little mental overhead. 
+
+In one circle of colour it conveys whether the app is recording, the length of the current recording, the length and number of scenes that make up the recording, as well as providing a viewfinder to frame the scene.
+
+The recording circle embraces the idea pushed in iOS 7 that design should be skewed toward functionality rather than ornamentality while maintaining an aesthetically pleasing facade.
 
 ## Dissecting
 
 To get a feel for what's going on behind the scenes, we're going to use a [neat trick](http://petersteinberger.com/blog/2013/how-to-inspect-the-view-hierarchy-of-3rd-party-apps/) where we can inject the Reveal library[^1] into any third party app running on a device. 
 
 ![Spark Camera Revealed](/media/2014-02-02-spark-camera/images/spark-revealed.png)
-
-##Thinking
 
 We can see that the view hierarchy is as minimal as the interface. The view we're looking at building (<code>CaptureProgressView</code>) has one subview (<code>RecordingTimeIndicatorView</code>) which in turn has a <code>UILabel</code> and <code>UIView</code>. This tells us that the circular progress view is likely composed of one or more <code>CALayers</code> with their contents drawn rather than subviews. 
 
@@ -180,7 +186,7 @@ We can see we're going to be looping over our collection of progress segment lay
 
 But what's with those <code>duration</code> and <code>strokeEndFinal</code> variables? 
 
-Let's start with <code>duration</code>. If we imagine that we want the entire animation to take 45 seconds we can pass that in, but what about when we pause and start the animation again? We don't want that to take another 45 seconds, we want it to take however long the previous animation had left before we paused it. To maintain the a persistent duration across all animations, we need a way of keeping track of how far along we've progressed. We know that <code>strokeEnd</code> is a value between 0 and 1 so we can easily use the <code>strokeEnd</code> of the first segment that was added to determine an overall percentage of how far along we are. For example, if the <code>strokeEnd</code> of the first segment was 0.5, we'd know we were half way through. 
+Let's start with <code>duration</code>. If we imagine that we want the entire animation to take 45 seconds we can pass that in, but what about when we pause and start the animation again? We don't want that to take another 45 seconds, we want it to take however long the previous animation had left before we paused it. To maintain the a persistent duration across all animations, we need a way of keeping track of how far along we've progressed. We know that <code>strokeEnd</code> is a value between 0 and 1 so we can easily use the <code>strokeEnd</code> of the first segment that was added to determine an overall percentage of how far along we are.
 
 Now what about this <code>strokeEndFinal</code>. If we imagine we have multiple progress segments, then we wouldn't want them to all animate to the end, instead we would want them to take into account the region of the full circle that has already elapsed. To do this we initialize <code>strokeEndFinal</code> with 1.0 and deduct from it the percentage of the full circle that each preceding segment occupies. In other words if we have multiple segments, the first should finish at the end of the circle, the second should finish at the start of the first and so on.. 
 
