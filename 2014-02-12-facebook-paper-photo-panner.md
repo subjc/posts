@@ -152,7 +152,7 @@ self.displayLink = [CADisplayLink displayLinkWithTarget:self selector:@selector(
 [self.displayLink addToRunLoop:[NSRunLoop mainRunLoop] forMode:NSRunLoopCommonModes];
 {% endhighlight %}
 
-You may notice we're adding our <code>CADisplayLinK</code> object to the run loop for the <code>NSRunLoopCommonModes</code> mode. While it's not covered in this post, we'll also want to support touch tracking which will place our <code>UIScrollView</code> in the <code>UITrackingRunLoopMode</code> tracking mode. If we were to use the <code>NSDefaultRunLoopMode</code> in this instance, we'd lose visual feedback of the scroll bar while tracking touches.
+You may notice we're adding our <code>CADisplayLink</code> object to the run loop for the <code>NSRunLoopCommonModes</code> mode. While it's not covered in this post, we'll also want to support touch tracking which will place our <code>UIScrollView</code> in the <code>UITrackingRunLoopMode</code> tracking mode. If we were to use the <code>NSDefaultRunLoopMode</code> in this instance, we'd lose visual feedback of the scroll bar while tracking touches.
 
 As we're using block based animation to update our <code>UIScrollView</code>, we can't rely on the <code>contentOffset</code> property to be 1:1 with what is being displayed onscreen. Instead we'll be polling the <code>presentationLayer</code> which will provide us with a close approximation of what is being displayed.
 
