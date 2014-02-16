@@ -41,14 +41,14 @@ We can see that we'll need a light grey circle to display as the "track" for the
 To provide the coloured segments that represent the recording progress we'll likely be using additional <code>CAShapeLayers</code> with the same <code>CGPathRef</code> as the background layer, so we can go ahead and store this <code>UIBezierPath</code> as a property so we don't have to recreate it each time. 
 
 {% highlight objc %}
-  CGPoint arcCenter = CGPointMake(CGRectGetMidY(self.bounds), CGRectGetMidX(self.bounds));
-  CGFloat radius = CGRectGetMidX(self.bounds) - insets.top - insets.bottom;
+CGPoint arcCenter = CGPointMake(CGRectGetMidY(self.bounds), CGRectGetMidX(self.bounds));
+CGFloat radius = CGRectGetMidX(self.bounds) - insets.top - insets.bottom;
 
-  self.circlePath = [UIBezierPath bezierPathWithArcCenter:arcCenter
-                                               	 radius:radius
-                                               startAngle:M_PI
-                                          	   endAngle:-M_PI
-                                          	  clockwise:NO];
+self.circlePath = [UIBezierPath bezierPathWithArcCenter:arcCenter
+                                             	 radius:radius
+                                             startAngle:M_PI
+                                        	   endAngle:-M_PI
+                                        	  clockwise:NO];
 {% endhighlight %}
 
 You may have noticed we're creating the <code>UIBezierPath</code> to be drawn anti-clockwise from the startAngle: of <code>M_PI</code> and <code>endAngle:</code> of <code>-M_PI</code>. This is to match the behaviour of [Spark Camera](https://www.sparkcamera.com/) where the recording progress starts at 270° and moves counter clockwise around the circle. 
@@ -56,17 +56,17 @@ You may have noticed we're creating the <code>UIBezierPath</code> to be drawn an
 Now that we have the <code>UIBezierPath</code> created, we can create the <code>CAShapeLayer</code> that'll provide the background circle and pass it the <code>CGPathRef</code> we get from the <code>UIBezierPath</code>.
 
 {% highlight objc %}
-  CAShapeLayer *backgroundLayer = [CAShapeLayerlayer];
-  backgroundLayer.path = self.circlePath.CGPath;
-  backgroundLayer.strokeColor = [[UIColor lightGrayColor] CGColor];
-  backgroundLayer.fillColor = [[UIColorclearColor] CGColor];
-  backgroundLayer.lineWidth = self.strokeWidth;
+CAShapeLayer *backgroundLayer = [CAShapeLayerlayer];
+backgroundLayer.path = self.circlePath.CGPath;
+backgroundLayer.strokeColor = [[UIColor lightGrayColor] CGColor];
+backgroundLayer.fillColor = [[UIColorclearColor] CGColor];
+backgroundLayer.lineWidth = self.strokeWidth;
 {% endhighlight %}
 
 Then we just add it as a sublayer of our <code>RecordingCircleOverlayView</code>'s layer.
 
 {% highlight objc %}
-    [self.layer addSublayer:backgroundLayer];
+[self.layer addSublayer:backgroundLayer];
 {% endhighlight %}
 
 If we build and run now we'll see that we've got our fancy light grey circle sitting in the middle of our view.
@@ -82,12 +82,12 @@ Now that we've got a way of starting and stopping the progress circle, we need t
 To display the progress segments we'll be using the same technique that we used to display the background circle layer, but with a slight twist. To give the appearance of the segment growing over time, we're going to animate the <code>strokeEnd</code> property on <code>CAShapeLayer</code>[^2]. We can use our circle <code>UIBezierPath</code> that we stored away earlier to create a full circle for the segment and use <code>strokeEnd</code> to draw only the portion of the segment that has elapsed.
 
 {% highlight objc %}
-  CAShapeLayer *progressLayer = [CAShapeLayerlayer];
-  progressLayer.path = self.circlePath.CGPath;
-  progressLayer.strokeColor = [[selfrandomColor] CGColor];
-  progressLayer.fillColor = [[UIColorclearColor] CGColor];
-  progressLayer.lineWidth = self.strokeWidth;
-  progressLayer.strokeEnd = 0.f;
+CAShapeLayer *progressLayer = [CAShapeLayerlayer];
+progressLayer.path = self.circlePath.CGPath;
+progressLayer.strokeColor = [[selfrandomColor] CGColor];
+progressLayer.fillColor = [[UIColorclearColor] CGColor];
+progressLayer.lineWidth = self.strokeWidth;
+progressLayer.strokeEnd = 0.f;
 {% endhighlight %}
 
 We set the <code>strokeEnd</code> to 0 initially so that we can animate it later on. 
@@ -95,38 +95,38 @@ We set the <code>strokeEnd</code> to 0 initially so that we can animate it later
 Then we add it as a sublayer of our <code>RecordingCircleOverlayView</code>'s layer.
 
 {% highlight objc %}
-  [self.layeraddSublayer:progressLayer];
+[self.layeraddSublayer:progressLayer];
 {% endhighlight %}
 
 .. but we also want to keep a reference to it so we can animate the <code>strokeEnd</code> property. We also know that we could potentially be using multiple <code>CAShapeLayers</code> (one for each progress segment) so storing each segment in it's own property wouldn't be feasible. Instead we'll create an <code>NSMutableArray</code> property on our <code>RecordingCircleOverlayView</code> and add each of our progress segment layers to that. 
 
 {% highlight objc %}
-    [self.progressLayersaddObject:progressLayer];
+[self.progressLayersaddObject:progressLayer];
 {% endhighlight %}
 
 .. but we can also see that we might need a reference to the current segment. If we look back to [Spark Camera](https://www.sparkcamera.com/), the current segment is the one that grows, the rest maintain their size and shift their offset based on the next segment. We could be clever and deduce that the last item in our <code>progressLayers</code> array is the current segment, but it's often nicer to be explicit. 
 
 {% highlight objc %}
-    self.currentProgressLayer = progressLayer;
+self.currentProgressLayer = progressLayer;
 {% endhighlight %}
 
 So at the end of all that, we might end up with a method that looks a bit like this
 
 {% highlight objc %}
-  - (void)addNewLayer
-  {
-      CAShapeLayer *progressLayer = [CAShapeLayer layer];
-      progressLayer.path = self.circlePath.CGPath;
-      progressLayer.strokeColor = [[self randomColor] CGColor];
-      progressLayer.fillColor = [[UIColor clearColor] CGColor];
-      progressLayer.lineWidth = self.strokeWidth;
-      progressLayer.strokeEnd = 0.f;
-      
-      [self.layer addSublayer:progressLayer];
-      [self.progressLayers addObject:progressLayer];
-      
-      self.currentProgressLayer = progressLayer;
-  }
+- (void)addNewLayer
+{
+    CAShapeLayer *progressLayer = [CAShapeLayer layer];
+    progressLayer.path = self.circlePath.CGPath;
+    progressLayer.strokeColor = [[self randomColor] CGColor];
+    progressLayer.fillColor = [[UIColor clearColor] CGColor];
+    progressLayer.lineWidth = self.strokeWidth;
+    progressLayer.strokeEnd = 0.f;
+    
+    [self.layer addSublayer:progressLayer];
+    [self.progressLayers addObject:progressLayer];
+    
+    self.currentProgressLayer = progressLayer;
+}
 {% endhighlight %}
 
 Now that we have a reference to our current progress segment, as well as all preceding segments, we need a way to animate the progress of the current segment and the position of the existing segments. We also need a way to pause the animation when we receive <code>touchesEnded:withEvent:</code>. 
@@ -144,42 +144,42 @@ To achieve this, we'll be using <code>CABasicAnimation</code> and the <code>pres
 Let's take a look at the entirety of our animation method and step through the bits of interest.
 
 {% highlight objc %}
-  - (void)updateAnimations
-  {    
-      CGFloat duration = self.duration * (1.f - [[self.progressLayers firstObject] strokeEnd]);
-      CGFloat strokeEndFinal = 1.f;
-      
-      for (CAShapeLayer *progressLayer in self.progressLayers)
-      {
-          CABasicAnimation *strokeEndAnimation = nil;
-          strokeEndAnimation = [CABasicAnimation animationWithKeyPath:@"strokeEnd"];
-          strokeEndAnimation.duration = duration;
-          strokeEndAnimation.fromValue = @(progressLayer.strokeEnd);
-          strokeEndAnimation.toValue = @(strokeEndFinal);
-          strokeEndAnimation.autoreverses = NO;
-          strokeEndAnimation.repeatCount = 0.f;
-          strokeEndAnimation.fillMode = kCAFillModeForwards;
-          strokeEndAnimation.removedOnCompletion = NO;
-          strokeEndAnimation.delegate = self;
-          [progressLayer addAnimation:strokeEndAnimation forKey:@"strokeEndAnimation"];
-          
-          strokeEndFinal -= (progressLayer.strokeEnd - progressLayer.strokeStart);
-          
-          if (progressLayer != self.currentProgressLayer)
-          {
-              CABasicAnimation *strokeStartAnimation = nil;
-              strokeStartAnimation = [CABasicAnimation animationWithKeyPath:@"strokeStart"];
-              strokeStartAnimation.duration = duration;
-              strokeStartAnimation.fromValue = @(progressLayer.strokeStart);
-              strokeStartAnimation.toValue = @(strokeEndFinal);
-              strokeStartAnimation.autoreverses = NO;
-              strokeStartAnimation.repeatCount = 0.f;
-              strokeStartAnimation.fillMode = kCAFillModeForwards;
-              strokeStartAnimation.removedOnCompletion = NO;
-              [progressLayer addAnimation:strokeStartAnimation forKey:@"strokeStartAnimation"];
-          }
-      }
-  }
+- (void)updateAnimations
+{    
+    CGFloat duration = self.duration * (1.f - [[self.progressLayers firstObject] strokeEnd]);
+    CGFloat strokeEndFinal = 1.f;
+    
+    for (CAShapeLayer *progressLayer in self.progressLayers)
+    {
+        CABasicAnimation *strokeEndAnimation = nil;
+        strokeEndAnimation = [CABasicAnimation animationWithKeyPath:@"strokeEnd"];
+        strokeEndAnimation.duration = duration;
+        strokeEndAnimation.fromValue = @(progressLayer.strokeEnd);
+        strokeEndAnimation.toValue = @(strokeEndFinal);
+        strokeEndAnimation.autoreverses = NO;
+        strokeEndAnimation.repeatCount = 0.f;
+        strokeEndAnimation.fillMode = kCAFillModeForwards;
+        strokeEndAnimation.removedOnCompletion = NO;
+        strokeEndAnimation.delegate = self;
+        [progressLayer addAnimation:strokeEndAnimation forKey:@"strokeEndAnimation"];
+        
+        strokeEndFinal -= (progressLayer.strokeEnd - progressLayer.strokeStart);
+        
+        if (progressLayer != self.currentProgressLayer)
+        {
+            CABasicAnimation *strokeStartAnimation = nil;
+            strokeStartAnimation = [CABasicAnimation animationWithKeyPath:@"strokeStart"];
+            strokeStartAnimation.duration = duration;
+            strokeStartAnimation.fromValue = @(progressLayer.strokeStart);
+            strokeStartAnimation.toValue = @(strokeEndFinal);
+            strokeStartAnimation.autoreverses = NO;
+            strokeStartAnimation.repeatCount = 0.f;
+            strokeStartAnimation.fillMode = kCAFillModeForwards;
+            strokeStartAnimation.removedOnCompletion = NO;
+            [progressLayer addAnimation:strokeStartAnimation forKey:@"strokeStartAnimation"];
+        }
+    }
+}
 {% endhighlight %}
 
 We can see we're going to be looping over our collection of progress segment layers and adding a <code>CABasicAnimation</code> to animate the <code>strokeEnd</code> of each. We'll also be adding a <code>CABasicAnimation</code> to animate the <code>strokeStart</code> of all layers that aren't the current layer. This translates into the current segment appearing to grow while maintaining it's starting position, while each of the previous segments will appear to maintain their size but move along the "track".
@@ -211,15 +211,15 @@ Sounds perfect!
 If we put these two together, we might end up with something like this
 
 {% highlight objc %}
-  - (void)removeAnimations
-  {
-      for (CAShapeLayer *progressLayer in self.progressLayers)
-      {
-          progressLayer.strokeStart = [progressLayer.presentationLayer strokeStart];
-          progressLayer.strokeEnd = [progressLayer.presentationLayer strokeEnd];
-          [progressLayer removeAllAnimations];
-      }
-  }
+- (void)removeAnimations
+{
+    for (CAShapeLayer *progressLayer in self.progressLayers)
+    {
+        progressLayer.strokeStart = [progressLayer.presentationLayer strokeStart];
+        progressLayer.strokeEnd = [progressLayer.presentationLayer strokeEnd];
+        [progressLayer removeAllAnimations];
+    }
+}
 {% endhighlight %}
 
 ## Drawing within the lines
@@ -229,14 +229,14 @@ So we can now start and stop our animations, awesome! But there's one more piece
 To do this, we'll set our <code>RecordingCircleOverlayView</code> instance to become the delegate of all the <code>strokeEnd</code> animations we create, implement the delegate callback <code>animationDidStop:finished:</code> and check for any animations that have finished. If any animation has finished, we can assume that all have finished and the circle is complete! Then we store the completion state in a flag (<code>finishedAnimating</code>) and check it before we start or stop any further animations. 
 
 {% highlight objc %}
-  - (void)animationDidStop:(CAAnimation *)anim finished:(BOOL)flag
-  {
-      if (self.hasFinishedAnimating == NO && flag)
-      {
-          [self removeAnimations];
-          self.finishedAnimating = flag;
-      }
-  }
+- (void)animationDidStop:(CAAnimation *)anim finished:(BOOL)flag
+{
+    if (self.hasFinishedAnimating == NO && flag)
+    {
+        [self removeAnimations];
+        self.finishedAnimating = flag;
+    }
+}
 {% endhighlight %}
 
 We'll also call our <code>removeAnimations</code> method to ensure that when the animations are finished, we maintain the final state of our layers.
