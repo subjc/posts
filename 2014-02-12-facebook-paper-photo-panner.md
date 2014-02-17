@@ -22,7 +22,7 @@ There is an inherent risk when including motion based controls in an app, often 
 
 ## Moving parts
 
-If think of the photo panner without the associated motion control, we can break it down into a view to display the image (<code>UIImageView</code>), a view for the image view to live in which handles the panning (<code>UIScrollView</code>) and a layer to display the scroll bar (<code>CAShapeLayer</code>).
+If we think of the photo panner without the associated motion control, we can break it down into a view to display the image (<code>UIImageView</code>), a view for the image view to live in which handles the panning (<code>UIScrollView</code>) and a layer to display the scroll bar (<code>CAShapeLayer</code>).
 
 Displaying the image at the full height of our device can be handled by <code>UIScrollView</code>'s zoom functionality, we just need to provide the appropriate zoom scale based on the aspect ratio of the device and image.
 
