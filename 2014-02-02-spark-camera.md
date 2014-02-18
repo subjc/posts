@@ -179,6 +179,16 @@ Let's take a look at the entirety of our animation method and step through the b
             [progressLayer addAnimation:strokeStartAnimation forKey:@"strokeStartAnimation"];
         }
     }
+    CABasicAnimation *backgroundLayerAnimation = [CABasicAnimation animationWithKeyPath:@"strokeStart"];
+    backgroundLayerAnimation.duration = duration;
+    backgroundLayerAnimation.fromValue = @(self.backgroundLayer.strokeStart);
+    backgroundLayerAnimation.toValue = @(1.f);
+    backgroundLayerAnimation.autoreverses = NO;
+    backgroundLayerAnimation.repeatCount = 0.f;
+    backgroundLayerAnimation.fillMode = kCAFillModeForwards;
+    backgroundLayerAnimation.removedOnCompletion = NO;
+    backgroundLayerAnimation.delegate = self;
+    [self.backgroundLayer addAnimation:backgroundLayerAnimation forKey:@"strokeStartAnimation"];
 }
 {% endhighlight %}
 
@@ -189,6 +199,8 @@ But what's with those <code>duration</code> and <code>strokeEndFinal</code> vari
 Let's start with <code>duration</code>. If we imagine that we want the entire animation to take 45 seconds we can pass that in, but what about when we pause and start the animation again? We don't want that to take another 45 seconds, we want it to take however long the previous animation had left before we paused it. To maintain the a persistent duration across all animations, we need a way of keeping track of how far along we've progressed. We know that <code>strokeEnd</code> is a value between 0 and 1 so we can easily use the <code>strokeEnd</code> of the first segment that was added to determine an overall percentage of how far along we are.
 
 Now what about this <code>strokeEndFinal</code>. If we imagine we have multiple progress segments, then we wouldn't want them to all animate to the end, instead we would want them to take into account the region of the full circle that has already elapsed. To do this we initialize <code>strokeEndFinal</code> with 1.0 and deduct from it the percentage of the full circle that each preceding segment occupies. In other words if we have multiple segments, the first should finish at the end of the circle, the second should finish at the start of the first and so on.. 
+
+As [Hjalti Jakobsson](https://twitter.com/hjaltij) pointed out on [Twitter](https://twitter.com/hjaltij/status/435792258622033920), we'll also need to update our background layer to be the full circle minus the length of the segments. This is to prevent drawing or coloured segments atop the background layer which could lead to visual artefacts.
 
 ## Pausing
 
@@ -219,6 +231,8 @@ If we put these two together, we might end up with something like this
         progressLayer.strokeEnd = [progressLayer.presentationLayer strokeEnd];
         [progressLayer removeAllAnimations];
     }
+    self.backgroundLayer.strokeStart = [self.backgroundLayer.presentationLayer strokeStart];
+    [self.backgroundLayer removeAllAnimations];
 }
 {% endhighlight %}
 
