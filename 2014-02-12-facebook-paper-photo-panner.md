@@ -117,7 +117,7 @@ It's a bit _too_ accurate.
 
 If we take another look at [Paper](https://itunes.apple.com/us/app/paper-stories-from-facebook/id794163692?mt=8), rotating the device causes the image to glide across the screen, coming to a slow rest when it reaches it's apex. In our current state, we glide with the finesse of a giraffe on ice. We not only need to smooth out the general movement but also incorporate an ease out function so we don't arrive at a complete stop. 
 
-Choosing the highest level of abstraction and only dropping down a level when the original doesn't meet the requirements or is not performant is an mindset that's prevalant throughout Cocoa and Core Foundation. We're provided with a wealth of options for common problems. Grand Central Dispatch and <code>NSOperationQueue</code>'s for asynchronous tasks, <code>UIView</code> and <code>CALayer</code> for displaying content on the screen and UIView block based animation and <code>CAAnimation</code> for animating that content. 
+Choosing the highest level of abstraction and only dropping down a level when the original doesn't meet the requirements or is not performant is an mindset that's prevalent throughout Cocoa and Core Foundation. We're provided with a wealth of options for common problems. Grand Central Dispatch and <code>NSOperationQueue</code>'s for asynchronous tasks, <code>UIView</code> and <code>CALayer</code> for displaying content on the screen and UIView block based animation and <code>CAAnimation</code> for animating that content. 
 
 Each of these overlap in functionality to a large extent, but exist to tackle problems in a different way, depending on the requirement. 
 
