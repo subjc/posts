@@ -84,6 +84,7 @@ Translating the device movement into scroll position is an instance where the dr
 We also have to factor in the zoom scale of the image we're displaying so regardless of image dimensions, device motions translates into the same relative change in scroll position. 
 
 {% highlight objc %}
+static CGFloat kRotationMultiplier = 5.f;
 CGFloat invertedYRotationRate = yRotationRate * -1;
 
 CGFloat zoomScale = (CGRectGetHeight(self.panningScrollView.bounds) / CGRectGetWidth(self.panningScrollView.bounds)) * (image.size.width / image.size.height);
@@ -124,7 +125,7 @@ Each of these overlap in functionality to a large extent, but exist to tackle pr
 By using UIView block based animation, we can tap into the power of Core Animation, provide an ease out function, not block user interaction and have our changes be relative to our current state, all with one call. 
 
 {% highlight objc %}
-CGFloat kRotationMultiplier = 5.f;
+static CGFloat kMovementSmoothing = 0.3f;
 [UIView animateWithDuration:kMovementSmoothing
                       delay:0.0f
                     options:UIViewAnimationOptionBeginFromCurrentState|
