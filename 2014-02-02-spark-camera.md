@@ -45,10 +45,10 @@ CGPoint arcCenter = CGPointMake(CGRectGetMidY(self.bounds), CGRectGetMidX(self.b
 CGFloat radius = CGRectGetMidX(self.bounds) - insets.top - insets.bottom;
 
 self.circlePath = [UIBezierPath bezierPathWithArcCenter:arcCenter
-                                             	 radius:radius
+                                                 radius:radius
                                              startAngle:M_PI
-                                        	   endAngle:-M_PI
-                                        	  clockwise:NO];
+                                               endAngle:-M_PI
+                                              clockwise:NO];
 {% endhighlight %}
 
 You may have noticed we're creating the <code>UIBezierPath</code> to be drawn anti-clockwise from the startAngle: of <code>M_PI</code> and <code>endAngle:</code> of <code>-M_PI</code>. This is to match the behaviour of [Spark Camera](https://www.sparkcamera.com/) where the recording progress starts at 270° and moves counter clockwise around the circle. 
@@ -141,11 +141,11 @@ To achieve this, we'll be using <code>CABasicAnimation</code> and the <code>pres
 
 ## Animating
 
-Let's take a look at the entirety of our animation method and step through the bits of interest.
+Let's take a look at the entirety of our animation method and step through the bits of interest.[^3]
 
 {% highlight objc %}
 - (void)updateAnimations
-{    
+{
     CGFloat duration = self.duration * (1.f - [[self.progressLayers firstObject] strokeEnd]);
     CGFloat strokeEndFinal = 1.f;
     
@@ -158,12 +158,13 @@ Let's take a look at the entirety of our animation method and step through the b
         strokeEndAnimation.toValue = @(strokeEndFinal);
         strokeEndAnimation.autoreverses = NO;
         strokeEndAnimation.repeatCount = 0.f;
-        strokeEndAnimation.fillMode = kCAFillModeForwards;
-        strokeEndAnimation.removedOnCompletion = NO;
-        strokeEndAnimation.delegate = self;
+        
+        CGFloat previousStrokeEnd = progressLayer.strokeEnd;
+        progressLayer.strokeEnd = strokeEndFinal;
+        
         [progressLayer addAnimation:strokeEndAnimation forKey:@"strokeEndAnimation"];
         
-        strokeEndFinal -= (progressLayer.strokeEnd - progressLayer.strokeStart);
+        strokeEndFinal -= (previousStrokeEnd - progressLayer.strokeStart);
         
         if (progressLayer != self.currentProgressLayer)
         {
@@ -174,20 +175,24 @@ Let's take a look at the entirety of our animation method and step through the b
             strokeStartAnimation.toValue = @(strokeEndFinal);
             strokeStartAnimation.autoreverses = NO;
             strokeStartAnimation.repeatCount = 0.f;
-            strokeStartAnimation.fillMode = kCAFillModeForwards;
-            strokeStartAnimation.removedOnCompletion = NO;
+            
+            progressLayer.strokeStart = strokeEndFinal;
+            
             [progressLayer addAnimation:strokeStartAnimation forKey:@"strokeStartAnimation"];
         }
     }
-    CABasicAnimation *backgroundLayerAnimation = [CABasicAnimation animationWithKeyPath:@"strokeStart"];
+    
+    CABasicAnimation *backgroundLayerAnimation = nil;
+    backgroundLayerAnimation = [CABasicAnimation animationWithKeyPath:@"strokeStart"];
     backgroundLayerAnimation.duration = duration;
     backgroundLayerAnimation.fromValue = @(self.backgroundLayer.strokeStart);
     backgroundLayerAnimation.toValue = @(1.f);
     backgroundLayerAnimation.autoreverses = NO;
     backgroundLayerAnimation.repeatCount = 0.f;
-    backgroundLayerAnimation.fillMode = kCAFillModeForwards;
-    backgroundLayerAnimation.removedOnCompletion = NO;
     backgroundLayerAnimation.delegate = self;
+    
+    self.backgroundLayer.strokeStart = 1.0;
+    
     [self.backgroundLayer addAnimation:backgroundLayerAnimation forKey:@"strokeStartAnimation"];
 }
 {% endhighlight %}
@@ -206,9 +211,9 @@ As [Hjalti Jakobsson](https://twitter.com/hjaltij) pointed out on [Twitter](http
 
 Now that we have our animation logic in place, we need to figure out how we're going to pause/stop the animation when we receive <code>touchesEnded:withEvent:</code>
 
-You may have noticed in the <code>updateAnimations</code> method we set both the <code>stokeEnd</code> and <code>strokeStart</code> animations to not be removed on completion. Since we're going to be doing some fancy footwork by copying the state of the layer when we stop the animations, we will remove the animations ourselves.
+While our progress segment layers models have been updated to reflect what could potentially be their final state, when we release our finger we effectively want to stop the animation and update the models to reflect the state of their presentation layers.
 
-Removing the animations while maintaining the visual state of the layers really boils down to two steps. 
+To accomplish this, we'll need to do the following two step:
 
 1. For each <code>CAShapeLayer</code> we have representing our progress segments, set the <code>strokeStart</code> and <code>strokeEnd</code> values to the values held by the layers <code>presentationLayer</code>. 
 
@@ -218,12 +223,10 @@ The <code>presentationLayer</code> of a <code>CALayer</code> represents the curr
 
 > While an animation is in progress, you can retrieve this object and use it to get the current values for those animations.
 
-Sounds perfect!
-
 If we put these two together, we might end up with something like this
 
 {% highlight objc %}
-- (void)removeAnimations
+- (void)updateLayerModelsForPresentationState
 {
     for (CAShapeLayer *progressLayer in self.progressLayers)
     {
@@ -231,6 +234,7 @@ If we put these two together, we might end up with something like this
         progressLayer.strokeEnd = [progressLayer.presentationLayer strokeEnd];
         [progressLayer removeAllAnimations];
     }
+    
     self.backgroundLayer.strokeStart = [self.backgroundLayer.presentationLayer strokeStart];
     [self.backgroundLayer removeAllAnimations];
 }
@@ -240,20 +244,17 @@ If we put these two together, we might end up with something like this
 
 So we can now start and stop our animations, awesome! But there's one more piece of the puzzle. We need to make sure once we have completed our animation we don't keep adding layers and updating animations when we receive <code>touchesBegan:withEvent:</code>.
 
-To do this, we'll set our <code>RecordingCircleOverlayView</code> instance to become the delegate of all the <code>strokeEnd</code> animations we create, implement the delegate callback <code>animationDidStop:finished:</code> and check for any animations that have finished. If any animation has finished, we can assume that all have finished and the circle is complete! Then we store the completion state in a flag (<code>finishedAnimating</code>) and check it before we start or stop any further animations. 
+To do this, we'll set our <code>RecordingCircleOverlayView</code> instance to become the delegate of all the <code>strokeEnd</code> animations we create, implement the delegate callback <code>animationDidStop:finished:</code> and check for any animations that have finished. If any animation has finished, we can assume that all have finished and the circle is complete! Then we store the completion state in a flag (<code>circleComplete</code>) and check it before we start or stop any further animations. 
 
 {% highlight objc %}
 - (void)animationDidStop:(CAAnimation *)anim finished:(BOOL)flag
 {
-    if (self.hasFinishedAnimating == NO && flag)
+    if (self.isCircleComplete == NO && flag)
     {
-        [self removeAnimations];
-        self.finishedAnimating = flag;
+        self.circleComplete = flag;
     }
 }
 {% endhighlight %}
-
-We'll also call our <code>removeAnimations</code> method to ensure that when the animations are finished, we maintain the final state of our layers.
 
 ## Wrapping up
 
@@ -264,5 +265,6 @@ As you can see there's not a lot of code behind a control like this, there are a
 You can [checkout this project on Github](https://github.com/subjc/SparkRecordingCircle).
 
 [^1]: Full disclosure: I work for [Itty Bitty Apps](http://ittybittyapps.com), developers of [Reveal](http://revealapp.com). 
-[^2]: Ole Begemann did a [great writeup](http://oleb.net/blog/2010/12/animating-drawing-of-cgpath-with-cashapelayer/) (3+ years ago!) on this technique 
+[^2]: [Ole Begemann](http://oleb.net) did a [great writeup](http://oleb.net/blog/2010/12/animating-drawing-of-cgpath-with-cashapelayer/) (3+ years ago!) on this technique 
+[^3]: The original implementation required the animation to be removed manually before updating the model. [David Rönnqvist](https://twitter.com/davidronnqvist) posted a [terrific explanation](https://gist.github.com/d-ronnqvist/11266321) on why this is considered a bad pattern for Core Animation and provided a much better implemention.
 
