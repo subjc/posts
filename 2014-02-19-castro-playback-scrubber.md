@@ -16,7 +16,7 @@ Enter [Castro](http://castro.fm/), a relatively recent addition to the App Store
 
 As well as developing [Castro](http://castro.fm/), [Supertop](http://supertop.co/) are behind [Tokens](http://usetokens.com/), an OS X app for developers to manage App Store promo codes.
 
-[Castro](http://castro.fm/) is an exercise in bold restraint. It eschews buttons wherever possible in favour of gestural interactions allowing the screen defer to the content, rather than the controls. 
+[Castro](http://castro.fm/) is an exercise in bold restraint. It eschews buttons wherever possible in favour of gestural interactions allowing the screen to defer to the content, rather than the controls. 
 
 While Apple provided the interactive pop gesture in iOS 7, it has largely been used as an auxiliary way of popping view controllers off the navigation stack. [Castro](http://castro.fm/) takes opposite tact and does away with the back button altogether, incorporating gestures to naturally switch between contexts.
 
@@ -42,7 +42,7 @@ If you'll indulge me for a moment, it may be interesting to dig a bit deeper int
 
 It's reasonable to say that controls for audio playback on mobile devices are generally geared toward music playback. While podcasts are delivered in the same format, consumption typically differs from music.
 
-Podcasts are primarily delivering content in language. When the meaning of the content is reliant on the preceding context, the ability to quickly move backward and forward becomes more important (this is where we might go off on a tangent about music and its construction also being reliant on the preceding context, but that may be out of the scope of this post).
+Podcasts are primarily delivering content through verbal language. When the meaning of the content is reliant on the preceding context, the ability to quickly move backward and forward becomes more important (this is where we might go off on a tangent about music and its construction also being reliant on the preceding context, but that may be out of the scope of this post).
 
 At the time of writing, the top 10 songs on iTunes had an average length of 3:34, whereas the top 10 podcasts had an average length of 43:56. If we couple the nature of the content with the increased average duration, it becomes apparent that the resolution of the controls to manipulate playback should be adjusted accordingly. 
 
@@ -70,7 +70,7 @@ Looks like a good reason to get our feet wet with UIKit Dynamics.
 
 Before we get started with UIKit Dynamics (AKA the fun stuff), we're going to need a way of moving our controls horizontally to initiate the scrubbing. 
 
-To do this, we'll add a <code>UIPanGestureRecognizer</code> to our controls view to track the location of our finger on the screen and translate that to the horizontal center of our controls view.
+To do this, we'll add a <code>UIPanGestureRecognizer</code> to our control's view to track the location of our finger on the screen and translate that to the horizontal center of our control's view.
 
 {% highlight objc %}
 - (void)panGestureRecognized:(UIPanGestureRecognizer *)panGesture
@@ -94,11 +94,11 @@ Now that we're able to move our controls around, on to the fun stuff.
 
 ## UIKit Dynamics
 
-At a basic level, UIKit Dynamics is a collection of high level API's that provide developers a way to imbue user interface elements with properties that mimic the physical world. What this means for those using the device is a more cohesive and realistic feel across all apps that incorporate dynamics. 
+At a basic level, UIKit Dynamics is a collection of high level APIs that provide developers a way to imbue user interface elements with properties that mimic the physical world. What this means for those using the device is a more cohesive and realistic feel across all apps that incorporate dynamics. 
 
 We'll skip over the basics, but for an introduction to UIKit Dynamics, Ash Furrow has a great [writeup](http://www.teehanlax.com/blog/introduction-to-uikit-dynamics/) on [the teehan+lax blog](http://www.teehanlax.com/blog).
 
-To mimic the force applied to the controls view to snap it back to its original position, we'll be using the <code>UISnapBehavior</code> class.
+To mimic the force applied to the control's view to snap it back to its original position, we'll be using the <code>UISnapBehavior</code> class.
 
 {% highlight objc %}
 self.dynamicAnimator = [[UIDynamicAnimator alloc] initWithReferenceView:self.view];
@@ -139,13 +139,13 @@ Instead we're going to use our <code>panGestureRecognized:</code> method we defi
 }
 {% endhighlight %}
 
-By removing our <code>UISnapBehavior</code> when we detect the start of a pan gesture and only re-adding it once the gesture has ended, we avoid having UIKit Dynamics interfere with our controls view while we're tracking touches. 
+By removing our <code>UISnapBehavior</code> when we detect the start of a pan gesture and only re-adding it once the gesture has ended, we avoid having UIKit Dynamics interfere with our control's view while we're tracking touches. 
 
 But there's a problem that reveals itself once we build and run. We haven't told UIKit Dynamics anything about how we want our view to react to the force of the <code>UISnapBehavior</code>. 
 
 By default, a dynamic item (<code>UIView</code> is one these) will allow rotation, so when the force of our <code>UISnapBehavior</code> is applied, it will rotate based on the force. 
 
-To disable rotation, we need to create an instance of <code>UIDynamicItemBehavior</code>, associate it with our controls view and use it to override the default rotation.
+To disable rotation, we need to create an instance of <code>UIDynamicItemBehavior</code>, associate it with our control's view and use it to override the default rotation.
 
 {% highlight objc %}
 UIDynamicItemBehavior *dynamicItemBehavior = [[UIDynamicItemBehavior alloc] 
@@ -219,7 +219,7 @@ We'll start by making a subclass of <code>UIView</code> which will be responsibl
 
 Now we'll need a way to update the views based on what time has elapsed and how that relates to the overall duration of the podcast. 
 
-This is the point where we'll need an object that models these two properties. To do this, we'll create an <code>NSObject</code> subclass with an <code>elapsedTime</code> and <code>totalTime</code> property represented as <code>NSTimeInterval</code>'s.
+This is the point where we'll need an object that models these two properties. To do this, we'll create an <code>NSObject</code> subclass with an <code>elapsedTime</code> and <code>totalTime</code> property represented as <code>NSTimeIntervals</code>.
 
 {% highlight objc %}
 @interface SCPlaybackItem : NSObject
@@ -242,7 +242,7 @@ All the pieces are in place, so now we need a way of notifying our timeline view
 }
 {% endhighlight %}
 
-Updating our timeline progress is as simple as modifying the width of our the <code>progressView</code> based on the elapsed time vs the overall duration.
+Updating our timeline progress is as simple as modifying the width of the <code>progressView</code> based on the elapsed time vs the overall duration.
 
 {% highlight objc %}
 - (void)updateProgressViewForPlaybackItem:(SCPlaybackItem *)playbackItem
@@ -258,7 +258,7 @@ Updating our timeline progress is as simple as modifying the width of our the <c
 
 Updating our elapsed time label has a little bit more to it. 
 
-If we look at [Castro](http://castro.fm/)'s timeline view, there's a lovely little touch where the elapsed time text switches from the right to the left of the playhead based on whether there is enough space to do so. This allows the eye to follow the playhead and see both the relative elapsed time the as well as the actual elapsed time in hours/minutes/seconds.
+If we look at [Castro](http://castro.fm/)'s timeline view, there's a lovely little touch where the elapsed time text switches from the right to the left of the playhead based on whether there is enough space to do so. This allows the eye to follow the playhead and see both the relative elapsed time as well as the actual elapsed time in hours/minutes/seconds.
 
 When we update our elapsed time label, we'll first size our label to the appropriate width, then position it depending on whether it is narrow enough to fit in the width of the <code>progressView</code>. 
 
@@ -320,9 +320,9 @@ self.timelineView.transform = CGAffineTransformIdentity;
 
 ## Committing Changes
 
-We spoke briefly about the potential pitfalls of using gestures to control playback of long content, namely accidental swiping, and how [Castro](http://castro.fm/) gets around this by not committing playback scrubbing until the timeline has completed its expansion animation. 
+We spoke briefly about the potential pitfalls of using gestures to control playback of long content, namely accidental swiping, and how [Castro](http://castro.fm/) gets around this is by not committing playback scrubbing until the timeline has completed its expansion animation. 
 
-The great thing about this method is it keeps the control feeling responsive while still providing a level of security that you won't accidentally skip through the podcast.
+The great thing about this approach is it keeps the control feeling responsive while still providing a sense of security that you won't accidentally skip through the podcast.
 
 To implement this behavior, we'll need to keep a reference to the elapsed time before it has been modified, set a flag (<code>commitTimelineScrubbing</code>) in our expansion animation completion block to indicate that we assume the scrubbing was intentional, and restore the elapsed time if the flag is set to <code>NO</code> when we collapse our timeline view.  
 
