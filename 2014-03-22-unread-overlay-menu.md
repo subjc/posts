@@ -10,11 +10,11 @@ video_mp4: "/media/2014-03-22-unread-overlay-menu/video/title-video.m4v"
 
 ## Background
 
-In mid 2013 the RSS world was dealt a substantial blow. Google announced that their (*the*) RSS subscription service, [Google Reader](http://www.google.com/reader/about/), was to be shuttered. With it, millions of voices suddenly cried out in terror, and were suddenly silenced.
+In mid-2013 the RSS world was dealt a substantial blow. Google announced that their (*the*) RSS subscription service, [Google Reader](http://www.google.com/reader/about/), was to be shuttered. With it, millions of voices suddenly cried out in terror, and were suddenly silenced.
 
 Declining use was cited as the key reason for the shutdown, though the immense reaction from [Google Reader](http://www.google.com/reader/about/) users indicated that this was a service which still maintained a large audience. The web was abuzz with concern for the future of RSS and the open web in general, though there was also a sense of optimism, a chance for those without the resources of a giant like Google to gain a foothold in the vacuum of what was once a tightly dominated market. To build a worthy replacement for the [Google Reader](http://www.google.com/reader/about/) exiles. 
 
-Despite what could’ve been its death knell, RSS is alive and well today with services like [Feedly](http://feedly.com/), [Feedwrangler](https://feedwrangler.net) and [Feedbin](https://feedbin.com/) filling the void left by [Google Readers](http://www.google.com/reader/about/) demise. Along with it came a new breed of modern, iOS RSS readers. Among them is [Unread](http://jaredsinclair.com/unread/), a delightfully clean and easy to use client for the aforementioned services, built by [Jared Sinclair](http://jaredsinclair.com/). In the short time it has spent on the app store, it has garnered a considerable following, so considerable that there’s a good chance you’re reading these very words from [Unread](http://jaredsinclair.com/unread/).
+Despite what could’ve been its death knell, RSS is alive and well today with services like [Feedly](http://feedly.com/), [Feedwrangler](https://feedwrangler.net) and [Feedbin](https://feedbin.com/) filling the void left by [Google Reader](http://www.google.com/reader/about/)'s demise. Along with it came a new breed of modern iOS RSS readers. Among them is [Unread](http://jaredsinclair.com/unread/), a delightfully clean and easy to use client for the aforementioned services, built by [Jared Sinclair](http://jaredsinclair.com/). In the short time it has spent on the app store, it has garnered a considerable following, so considerable that there’s a good chance you’re reading these very words from [Unread](http://jaredsinclair.com/unread/).
 
 This article is about [Unread](http://jaredsinclair.com/unread/)'s pull-for-menu interaction, but it is also about history, how far we’ve come and how we got here.
 
@@ -40,25 +40,25 @@ Fast forward to today and we have [Unread](http://jaredsinclair.com/unread/)'s m
 
 ## Deconstructing
 
-This years WWDC yielded a bumper crop of *new shiny* for developers to play with: UIKit Dynamics, Text Kit, Sprite Kit and UIViewController transitions to name but a few. We'll be using two of these to recreate [Unread](http://jaredsinclair.com/unread/)'s menu, UIViewController transitions and UIKit Dynamics, although the latter we won’t be dealing with directly.
+This year's WWDC yielded a bumper crop of *new shiny* for developers to play with: UIKit Dynamics, Text Kit, Sprite Kit and UIViewController transitions to name but a few. We'll be using two of these to recreate [Unread](http://jaredsinclair.com/unread/)'s menu, UIViewController transitions and UIKit Dynamics, although the latter we won’t be dealing with directly.
 
 <video src="/media/2014-03-22-unread-overlay-menu/video/slomo.m4v" autoplay="true" loop="true"></video>
 
 The first thing we notice when we pull the content to expose the menu is the spring in the pull indicator. Contrasted against the focussed, understated reading interface of [Unread](http://jaredsinclair.com/unread/) it's hard to miss. It's reminiscent of the (sadly) short lived iOS 6 pull-to-refresh animation[^1], delightfully playful and descriptive of the interaction progress. 
 
-We’ve covered similar dynamic behaviour in the past and implemented it using UIKit Dynamics, this time around we’ll step up an abstraction layer. 
+We’ve covered similar dynamic behaviour [in the past](http://subjc.com/castro-playback-scrubber/) and implemented it using UIKit Dynamics, this time around we’ll step up an abstraction layer. 
 
 ## That 7 parameter method
 
 One of the great features of Objective-C is named parameters. Coupled with the verbosity of the language, it provides a natural way to describe and document the intent of a method, though the length of some methods can scare some new developers. One such method is the newly added UIView block based animation method, <code>animateWithDuration:delay:usingSpringWithDamping:initialSpringVelocity:options:animations:completion:</code> which, while not the longest method in Cocoa Touch, is certainly on the [scoreboard](https://github.com/Quotation/LongestCocoa). 
 
-Despite it's imposing presence, it's an incredibly simple to use yet powerful method for adding dynamic animated behaviour to your interface without the overhead of pulling in a full UIKit Dynamics stack. It was noted by some [observant](http://iosdevweekly.com/issues/136) [readers](https://twitter.com/followben/status/442224305657483264) that the dynamic behaviour in a [previous post](http://subjc.com/castro-playback-scrubber/) may have been implemented using this method, so it seems like a great opportunity to put it to work on the pull-for-menu spring behaviour.
+Despite its imposing presence, it's an incredibly simple to use yet powerful method for adding dynamic animated behaviour to your interface without the overhead of pulling in a full UIKit Dynamics stack. It was noted by some [observant](http://iosdevweekly.com/issues/136) [readers](https://twitter.com/followben/status/442224305657483264) that the dynamic behaviour in a [previous post](http://subjc.com/castro-playback-scrubber/) may have been implemented using this method, so it seems like a great opportunity to put it to work on the pull-for-menu spring behaviour.
 
 ## Stretttch
 
-If you imagine stretching a out a rubber band, the further it is stretched, the thinner the band will become. This physical behaviour is mirrored in [Unread](http://jaredsinclair.com/unread/)'s pull interaction and while its a small detail, one that you mightn’t notice unless you were looking for it, it strengthens the perception that when we’re dragging the scroll view beyond its <code>contentSize</code>, we’re met by resistance.
+If you imagine stretching a out a rubber band, the further it is stretched, the thinner the band will become. This physical behaviour is mirrored in [Unread](http://jaredsinclair.com/unread/)'s pull interaction and while it's a small detail, one that you mightn’t notice unless you were looking for it, it strengthens the perception that when we’re dragging the scroll view beyond its <code>contentSize</code>, we’re met by resistance.
 
-To mimic this behaviour in our implementation, we’ll be providing a view (<code>SCSpringExpandingView</code>) that will animate between two different frames. The views frame for our collapsed, un-expanded state will take full width of its superview with a height that matches, giving us a small square view. 
+To mimic this behaviour in our implementation, we’ll be providing a view (<code>SCSpringExpandingView</code>) that will animate between two different frames. The view's frame for our collapsed, un-expanded state will take full width of its superview with a height that matches, giving us a small square view. 
 
 {% highlight objc %}
 - (CGRect)frameForCollapsedState
@@ -111,13 +111,13 @@ While these parameters correspond to physical properties, for the most part it�
 
 And that’s it. With just one method call and some waving of magic numbers, we can take advantage of the dynamic underpinnings of UIKit in iOS 7.
 
-## Threes a crowd
+## Three's a crowd
 
-Now that we’ve created our <code>SCSpringExpandingView</code>, we'll need to create a view that houses the three <code>SCSpringExpandingView</code>'s. Let's call it <code>SCDragAffordanceView</code>.
+Now that we’ve created our <code>SCSpringExpandingView</code>, we'll need to create a view that houses the three <code>SCSpringExpandingView</code>s. Let's call it <code>SCDragAffordanceView</code>.
 
 The basic job of the the <code>SCDragAffordanceView</code> will be to layout the three <code>SCSpringExpandingView</code>'s as well as providing an interface with which we can pass in the progress of pull-for-menu interaction.
 
-To layout our <code>SCSpringExpandingView</code>'s, we'll override <code>layoutSubviews</code> and align each of the views frames equally spaced across our bounds.
+To layout our <code>SCSpringExpandingView</code>s, we'll override <code>layoutSubviews</code> and align each of the views frames equally spaced across our bounds.
 
 {% highlight objc %}
 - (void)layoutSubviews
@@ -138,7 +138,7 @@ To layout our <code>SCSpringExpandingView</code>'s, we'll override <code>layoutS
 
 Now that we have the views laid out, we'll need to update them when someone calls the <code>setProgress:</code> method. If we look back to [Unread](http://jaredsinclair.com/unread/), we can see three distinct states for each of the spring views: Collapsed, expanded and completed. The first two we've mentioned, but the final is what indicates that the pull-for-menu interaction has reached a point where releasing will trigger the menu to be shown.
 
-To implement this, we'll iterate over our three <code>SCSpringExpandingView</code>'s and update the colour of each based primarily on whether the <code>progress</code> passed in is greater or equal to 1.0, followed by whether the <code>progress</code> is great enough that the view should expand.
+To implement this, we'll iterate over our three <code>SCSpringExpandingView</code>s and update the colour of each based primarily on whether the <code>progress</code> passed in is greater or equal to 1.0, followed by whether the <code>progress</code> is great enough that the view should expand.
 
 {% highlight objc %}
 - (void)setProgress:(CGFloat)progress
@@ -177,7 +177,7 @@ Now that we’ve covered some of the new hotness, let’s take a detour down a w
 
 Ask any iOS developer and they’ll tell you, nested scroll views are *the* user interface element, so much so that Apple have [dedicated a chapter](https://developer.apple.com/library/ios/documentation/windowsviews/conceptual/UIScrollView_pg/NestedScrollViews/NestedScrollViews.html) of their <code>UIScrollView</code> programming guide to the topic. It's criminal that we’ve studied this many innovative iOS interfaces together without mentioning them. 
 
-For our example content, we’ll be displaying some riveting Lorem Ipsum with <code>UITextView</code>, a class which received some Text Kit love in the great facelift of iOS 7. While we won’t be covering any of the new API’s in this entry, anyone interested should check out the [fantastic writeup on objc.io](http://www.objc.io/issue-5/getting-to-know-textkit.html). Instead, all we need to remember is that <code>UITextView</code> is a subclass of the mighty <code>UIScrollView</code>. 
+For our example content, we’ll be displaying some riveting Lorem Ipsum with <code>UITextView</code>, a class which received some TextKit love in the great facelift of iOS 7. While we won’t be covering any of the new APIs in this entry, anyone interested should check out the [fantastic writeup on objc.io](http://www.objc.io/issue-5/getting-to-know-textkit.html). Instead, all we need to remember is that <code>UITextView</code> is a subclass of the mighty <code>UIScrollView</code>. 
 
 We want our <code>SCDragAffordanceView</code> to always be at hand, ready to present our menu. One option to consider would be to add it as a subview of our <code>UITextView</code> and modify its vertical origin based on the <code>contentOffset</code> of our <code>UITextView</code>, but this overloads the responsibility of our <code>UITextView</code> beyond just displaying text and just *feels* a bit wrong. 
 
@@ -311,7 +311,7 @@ Now when our menu view controller is presented it will use our custom transition
 
 <video src="/media/2014-03-22-unread-overlay-menu/video/finished.m4v" autoplay="true" loop="true"></video>
 
-As we approach the 6th anniversary of the iOS App Store its amazing how far the app landscape has come. The idea that we can already consider apps as classics is an indication of just how fast its moving. Every year developers are given a new collection of toys to build great apps with, yet there is still room for the venerable <code>UIScrollView</code>.
+As we approach the 6th anniversary of the iOS App Store its amazing how far the app landscape has come. The idea that we can already consider apps as classics is an indication of just how fast it's moving. Every year developers are given a new collection of toys to build great apps with, yet there is still room for the venerable <code>UIScrollView</code>.
 
 You can [checkout this project on GitHub](https://github.com/subjc/SubjectiveCUnreadMenu).
 
