@@ -10,7 +10,7 @@ video_mp4: "/media/2014-02-02-spark-camera/video/title-video.m4v"
 
 ## Background
 
-There's no denying that camera apps are in vogue. At the time of writing, a third of the apps in the Best New Apps section of the App Store were in the Photo & Video category and with good reason, camera apps are a fantastic way to express creativity for both the budding filmmaker and the developer behind them. We're going to be looking [Spark Camera](https://www.sparkcamera.com/), one of the standouts of great interface and awesome user experience. 
+There's no denying that camera apps are in vogue. At the time of writing, a third of the apps in the Best New Apps section of the App Store were in the Photo & Video category and with good reason; camera apps are a fantastic way to express creativity for both the budding filmmaker and the developer behind them. We're going to be looking at [Spark Camera](https://www.sparkcamera.com/), one of the standouts of great user interface and awesome user experience. 
 
 [Spark Camera](https://www.sparkcamera.com/) was built by design firm [IDEO](http://www.ideo.com/) (pronounced *“eye-dee-oh”*) who have a pretty [illustrious history](http://www.ideo.com/work/mouse-for-apple/). It has an elegant and simple look which combines form and function. In particular we're going to be dissecting and rebuilding the circular progress view.
 
@@ -56,10 +56,10 @@ You may have noticed we're creating the <code>UIBezierPath</code> to be drawn an
 Now that we have the <code>UIBezierPath</code> created, we can create the <code>CAShapeLayer</code> that'll provide the background circle and pass it the <code>CGPathRef</code> we get from the <code>UIBezierPath</code>.
 
 {% highlight objc %}
-CAShapeLayer *backgroundLayer = [CAShapeLayerlayer];
+CAShapeLayer *backgroundLayer = [CAShapeLayer layer];
 backgroundLayer.path = self.circlePath.CGPath;
 backgroundLayer.strokeColor = [[UIColor lightGrayColor] CGColor];
-backgroundLayer.fillColor = [[UIColorclearColor] CGColor];
+backgroundLayer.fillColor = [[UIColor clearColor] CGColor];
 backgroundLayer.lineWidth = self.strokeWidth;
 {% endhighlight %}
 
@@ -73,19 +73,19 @@ If we build and run now we'll see that we've got our fancy light grey circle sit
 
 ![Fancy circle](/media/2014-02-02-spark-camera/images/empty-circle.png)
 
-Now we're going to need a way of starting and stopping the progress circle. If we look back at [Spark Camera](https://www.sparkcamera.com/), to start recording we need to touch down with our finger and top pause we just let go. This rules out <code>UITapGestureRecognizer</code> as it fires on <code>UIControlEventTouchUpInside</code>, meaning we'd have to touch down and touch up before we register an event. 
+Now we're going to need a way of starting and stopping the progress circle. If we look back at [Spark Camera](https://www.sparkcamera.com/), to start recording we need to touch down with our finger and to pause we just let go. This rules out <code>UITapGestureRecognizer</code> as it fires on <code>UIControlEventTouchUpInside</code>, meaning we'd have to touch down and touch up before we register an event. 
 
-While we could use a <code>UIButton</code> and the control event <code>UIControlEventTouchDown</code>, we've seen in the dissection with Reveal that [Spark Camera](https://www.sparkcamera.com/) doesn't do this, so why should we. Instead we'll tap into the power of <code>UIResponder</code> (of which <code>UIView</code> is a subclass) and override <code>touchesBegan:WithEvent:</code> and <code>touchesEnded:WithEvent:</code> on our <code>UIView</code> subclass, <code>RecordingCircleOverlayView</code>.
+While we could use a <code>UIButton</code> and the control event <code>UIControlEventTouchDown</code>, we've seen in the dissection with Reveal that [Spark Camera](https://www.sparkcamera.com/) doesn't do this, so why should we? Instead we'll tap into the power of <code>UIResponder</code> (of which <code>UIView</code> is a subclass) and override <code>touchesBegan:WithEvent:</code> and <code>touchesEnded:WithEvent:</code> on our <code>UIView</code> subclass, <code>RecordingCircleOverlayView</code>.
 
 Now that we've got a way of starting and stopping the progress circle, we need to start drawing the progress.
 
 To display the progress segments we'll be using the same technique that we used to display the background circle layer, but with a slight twist. To give the appearance of the segment growing over time, we're going to animate the <code>strokeEnd</code> property on <code>CAShapeLayer</code>[^2]. We can use our circle <code>UIBezierPath</code> that we stored away earlier to create a full circle for the segment and use <code>strokeEnd</code> to draw only the portion of the segment that has elapsed.
 
 {% highlight objc %}
-CAShapeLayer *progressLayer = [CAShapeLayerlayer];
+CAShapeLayer *progressLayer = [CAShapeLayer layer];
 progressLayer.path = self.circlePath.CGPath;
-progressLayer.strokeColor = [[selfrandomColor] CGColor];
-progressLayer.fillColor = [[UIColorclearColor] CGColor];
+progressLayer.strokeColor = [[self randomColor] CGColor];
+progressLayer.fillColor = [[UIColor clearColor] CGColor];
 progressLayer.lineWidth = self.strokeWidth;
 progressLayer.strokeEnd = 0.f;
 {% endhighlight %}
@@ -95,16 +95,16 @@ We set the <code>strokeEnd</code> to 0 initially so that we can animate it later
 Then we add it as a sublayer of our <code>RecordingCircleOverlayView</code>'s layer.
 
 {% highlight objc %}
-[self.layeraddSublayer:progressLayer];
+[self.layer addSublayer:progressLayer];
 {% endhighlight %}
 
-.. but we also want to keep a reference to it so we can animate the <code>strokeEnd</code> property. We also know that we could potentially be using multiple <code>CAShapeLayers</code> (one for each progress segment) so storing each segment in it's own property wouldn't be feasible. Instead we'll create an <code>NSMutableArray</code> property on our <code>RecordingCircleOverlayView</code> and add each of our progress segment layers to that. 
+...but we also want to keep a reference to it so we can animate the <code>strokeEnd</code> property. We know that we could potentially be using multiple <code>CAShapeLayers</code> (one for each progress segment) so storing each segment in it's own property wouldn't be feasible. Instead we'll create an <code>NSMutableArray</code> property on our <code>RecordingCircleOverlayView</code> and add each of our progress segment layers to that. 
 
 {% highlight objc %}
-[self.progressLayersaddObject:progressLayer];
+[self.progressLayers addObject:progressLayer];
 {% endhighlight %}
 
-.. but we can also see that we might need a reference to the current segment. If we look back to [Spark Camera](https://www.sparkcamera.com/), the current segment is the one that grows, the rest maintain their size and shift their offset based on the next segment. We could be clever and deduce that the last item in our <code>progressLayers</code> array is the current segment, but it's often nicer to be explicit. 
+...but we can also see that we might need a reference to the current segment. If we look back to [Spark Camera](https://www.sparkcamera.com/), the current segment is the one that grows, the rest maintain their size and shift their offset based on the next segment. We could be clever and deduce that the last item in our <code>progressLayers</code> array is the current segment, but it's often nicer to be explicit. 
 
 {% highlight objc %}
 self.currentProgressLayer = progressLayer;
@@ -197,25 +197,25 @@ Let's take a look at the entirety of our animation method and step through the b
 }
 {% endhighlight %}
 
-We can see we're going to be looping over our collection of progress segment layers and adding a <code>CABasicAnimation</code> to animate the <code>strokeEnd</code> of each. We'll also be adding a <code>CABasicAnimation</code> to animate the <code>strokeStart</code> of all layers that aren't the current layer. This translates into the current segment appearing to grow while maintaining it's starting position, while each of the previous segments will appear to maintain their size but move along the "track".
+We can see we're going to be looping over our collection of progress segment layers and adding a <code>CABasicAnimation</code> to animate the <code>strokeEnd</code> of each. We'll also be adding a <code>CABasicAnimation</code> to animate the <code>strokeStart</code> of all layers that aren't the current layer. This translates into the current segment appearing to grow while maintaining its starting position, while each of the previous segments will appear to maintain their size but move along the "track".
 
 But what's with those <code>duration</code> and <code>strokeEndFinal</code> variables? 
 
-Let's start with <code>duration</code>. If we imagine that we want the entire animation to take 45 seconds we can pass that in, but what about when we pause and start the animation again? We don't want that to take another 45 seconds, we want it to take however long the previous animation had left before we paused it. To maintain the a persistent duration across all animations, we need a way of keeping track of how far along we've progressed. We know that <code>strokeEnd</code> is a value between 0 and 1 so we can easily use the <code>strokeEnd</code> of the first segment that was added to determine an overall percentage of how far along we are.
+Let's start with <code>duration</code>. If we imagine that we want the entire animation to take 45 seconds we can pass that in, but what about when we pause and start the animation again? We don't want that to take another 45 seconds, we want it to take however long the previous animation had left before we paused it. To maintain a persistent duration across all animations, we need a way of keeping track of how far along we've progressed. We know that <code>strokeEnd</code> is a value between 0 and 1 so we can easily use the <code>strokeEnd</code> of the first segment that was added to determine an overall percentage of how far along we are.
 
 Now what about this <code>strokeEndFinal</code>. If we imagine we have multiple progress segments, then we wouldn't want them to all animate to the end, instead we would want them to take into account the region of the full circle that has already elapsed. To do this we initialize <code>strokeEndFinal</code> with 1.0 and deduct from it the percentage of the full circle that each preceding segment occupies. In other words if we have multiple segments, the first should finish at the end of the circle, the second should finish at the start of the first and so on.. 
 
-As [Hjalti Jakobsson](https://twitter.com/hjaltij) pointed out on [Twitter](https://twitter.com/hjaltij/status/435792258622033920), we'll also need to update our background layer to be the full circle minus the length of the segments. This is to prevent drawing or coloured segments atop the background layer which could lead to visual artefacts.
+As [Hjalti Jakobsson](https://twitter.com/hjaltij) pointed out on [Twitter](https://twitter.com/hjaltij/status/435792258622033920), we'll also need to update our background layer to be the full circle minus the length of the segments. This is to prevent drawing of coloured segments atop the background layer which could lead to visual artefacts.
 
 ## Pausing
 
 Now that we have our animation logic in place, we need to figure out how we're going to pause/stop the animation when we receive <code>touchesEnded:withEvent:</code>
 
-While our progress segment layers models have been updated to reflect what could potentially be their final state, when we release our finger we effectively want to stop the animation and update the models to reflect the state of their presentation layers.
+While our progress segment layer models have been updated to reflect what could potentially be their final state, when we release our finger we effectively want to stop the animation and update the models to reflect the state of their presentation layers.
 
-To accomplish this, we'll need to do the following two step:
+To accomplish this, we'll need to do the following two steps:
 
-1. For each <code>CAShapeLayer</code> we have representing our progress segments, set the <code>strokeStart</code> and <code>strokeEnd</code> values to the values held by the layers <code>presentationLayer</code>. 
+1. For each <code>CAShapeLayer</code> we have representing our progress segments, set the <code>strokeStart</code> and <code>strokeEnd</code> values to the values held by the layer's <code>presentationLayer</code>. 
 
 2. Remove all animations from the <code>CAShapeLayer</code>.
 
@@ -260,11 +260,10 @@ To do this, we'll set our <code>RecordingCircleOverlayView</code> instance to be
 
 <video src="/media/2014-02-02-spark-camera/video/spark-finished.m4v" autoplay="true" loop="true"></video>
 
-As you can see there's not a lot of code behind a control like this, there are a few edge cases here and there but the real work is coming up with such an ingeniously simple and elegant way to solve a problem like this on a mobile device.
+As you can see there's not a lot of code behind a control like this. There are a few edge cases here and there but the real work is coming up with such an ingeniously simple and elegant way to solve a problem like this on a mobile device.
 
 You can [checkout this project on Github](https://github.com/subjc/SparkRecordingCircle).
 
 [^1]: Full disclosure: I work for [Itty Bitty Apps](http://ittybittyapps.com), developers of [Reveal](http://revealapp.com). 
 [^2]: [Ole Begemann](http://oleb.net) did a [great writeup](http://oleb.net/blog/2010/12/animating-drawing-of-cgpath-with-cashapelayer/) (3+ years ago!) on this technique 
 [^3]: The original implementation required the animation to be removed manually before updating the model. [David Rönnqvist](https://twitter.com/davidronnqvist) posted a [terrific explanation](https://gist.github.com/d-ronnqvist/11266321) on why this is considered a bad pattern for Core Animation and provided a much better implemention.
-
