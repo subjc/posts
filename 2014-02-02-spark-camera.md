@@ -7,7 +7,7 @@ image: "/media/2014-02-02-spark-camera/images/title-image.jpg"
 video: true
 video_mp4: "/media/2014-02-02-spark-camera/video/title-video.m4v"
 author:
-  name: Same Page
+  name: Sam Page
   url: https://twitter.com/sampage
 ---
 

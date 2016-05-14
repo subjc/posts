@@ -7,7 +7,7 @@ image: "/media/2014-02-19-castro-playback-scrubber/images/castro-title.jpg"
 video: true
 video_mp4: "/media/2014-02-19-castro-playback-scrubber/video/castro-title.m4v"
 author:
-  name: Same Page
+  name: Sam Page
   url: https://twitter.com/sampage
 ---
 

@@ -4,7 +4,7 @@ title:  "Opening up the floor"
 date:   2015-02-28 17:00:00
 description: "Sharing a little bit of love and knowledge."
 author:
-  name: Same Page
+  name: Sam Page
   url: https://twitter.com/sampage
 ---
 

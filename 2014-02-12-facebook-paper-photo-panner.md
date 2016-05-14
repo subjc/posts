@@ -7,7 +7,7 @@ image: "/media/2014-02-12-facebook-paper-photo-panner/images/title-image.jpg"
 video: true
 video_mp4: "/media/2014-02-12-facebook-paper-photo-panner/video/title-video.m4v"
 author:
-  name: Same Page
+  name: Sam Page
   url: https://twitter.com/sampage
 ---
 

@@ -7,7 +7,7 @@ image: "/media/2014-03-22-unread-overlay-menu/images/title.jpg"
 video: true
 video_mp4: "/media/2014-03-22-unread-overlay-menu/video/title-video.m4v"
 author:
-  name: Same Page
+  name: Sam Page
   url: https://twitter.com/sampage
 ---
 
