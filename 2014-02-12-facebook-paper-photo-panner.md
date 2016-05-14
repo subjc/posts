@@ -6,17 +6,20 @@ description: "Deconstructing an expressive and immersive way to explore photos."
 image: "/media/2014-02-12-facebook-paper-photo-panner/images/title-image.jpg"
 video: true
 video_mp4: "/media/2014-02-12-facebook-paper-photo-panner/video/title-video.m4v"
+author:
+  name: Same Page
+  url: https://twitter.com/sampage
 ---
 
 ## Background
 
-In 2011 [Facebook purchased Push Pop Press](http://pushpoppress.com/about/), a company founded by former Apple employees [Kimon Tsinteris](http://kimtsi.com) and [Mike Matas](http://mikematas.com) aimed at creating a platform on which engaging digital books and publications for iOS could be built. [Push Pop Press](http://pushpoppress.com/)' technology was initially used to create Al Gore's book [Our Choice](https://itunes.apple.com/au/app/al-gore-our-choice-plan-to/id432753658?mt=8), which would become the flagship example of the platform. At the time, it was unknown as to whether Facebook had plans for the platform [Push Pop Press](http://pushpoppress.com/) had developed or whether this was purely an "[acquihire](http://en.wikipedia.org/wiki/Acqui-hiring‎)". 
+In 2011 [Facebook purchased Push Pop Press](http://pushpoppress.com/about/), a company founded by former Apple employees [Kimon Tsinteris](http://kimtsi.com) and [Mike Matas](http://mikematas.com) aimed at creating a platform on which engaging digital books and publications for iOS could be built. [Push Pop Press](http://pushpoppress.com/)' technology was initially used to create Al Gore's book [Our Choice](https://itunes.apple.com/au/app/al-gore-our-choice-plan-to/id432753658?mt=8), which would become the flagship example of the platform. At the time, it was unknown as to whether Facebook had plans for the platform [Push Pop Press](http://pushpoppress.com/) had developed or whether this was purely an "[acquihire](http://en.wikipedia.org/wiki/Acqui-hiring‎)".
 
 When Facebook announced [Paper](https://itunes.apple.com/us/app/paper-stories-from-facebook/id794163692?mt=8) alongside [Facebook Creative Labs](https://www.facebook.com/labs), a previously unknown skunkworks within Facebook, it now seems apparent that at the very least, the ethos behind [Push Pop Press](http://pushpoppress.com/)' innovative digital creation tool has not fallen by the wayside.
 
 ## Analysis
 
-While [Paper](https://itunes.apple.com/us/app/paper-stories-from-facebook/id794163692?mt=8) is laden with noteworthy interactions, we're going to be looking at the panoramic photo panner. In particular, this control typifies an incredibly articulate use of device motion and touch free interaction. Unless you've used [Paper](https://itunes.apple.com/us/app/paper-stories-from-facebook/id794163692?mt=8) in person, it's hard to convey the level of immersion you get when viewing photos, especially panoramic content. It feels like what Apple were trying to do when they implemented their parallax effect for icons and dialogs in iOS 7. 
+While [Paper](https://itunes.apple.com/us/app/paper-stories-from-facebook/id794163692?mt=8) is laden with noteworthy interactions, we're going to be looking at the panoramic photo panner. In particular, this control typifies an incredibly articulate use of device motion and touch free interaction. Unless you've used [Paper](https://itunes.apple.com/us/app/paper-stories-from-facebook/id794163692?mt=8) in person, it's hard to convey the level of immersion you get when viewing photos, especially panoramic content. It feels like what Apple were trying to do when they implemented their parallax effect for icons and dialogs in iOS 7.
 
 There is an inherent risk when including motion based controls in an app, often they serve no real purpose and at worst, they can hinder engagement rather than improving it. The [Facebook Creative Labs](https://www.facebook.com/labs) team have done a superb job at treading these boundaries to create a control that is there when you need it and gets out of your way when you don't. In short, it just "feels right".
 
@@ -48,7 +51,7 @@ To be notified when the gyroscope orientation has changed, we'll be using an ins
 To start receiving callbacks for device motion, we call <code>startDeviceMotionUpdatesToQueue:withHandler:</code> and pass in an <code>NSOperationQueue</code> and a block to perform on the change.
 
 {% highlight objc %}
-[self.motionManager startDeviceMotionUpdatesToQueue:[NSOperationQueue mainQueue] 
+[self.motionManager startDeviceMotionUpdatesToQueue:[NSOperationQueue mainQueue]
 withHandler:^(CMDeviceMotion *motion, NSError *error) {
     // Do our processing
 }];
@@ -56,7 +59,7 @@ withHandler:^(CMDeviceMotion *motion, NSError *error) {
 
 Now that we're receiving callbacks from our <code>CMMotionManager</code> when the device orientation changes, we need to translate the gyroscope data into something that can adjust our <code>UIScrollView</code>'s <code>contentOffset</code>.
 
-The data we care about the most is the <code>rotationRate</code> which will give us the <code>x</code>, <code>y</code> and <code>z</code> rotation of our device. 
+The data we care about the most is the <code>rotationRate</code> which will give us the <code>x</code>, <code>y</code> and <code>z</code> rotation of our device.
 
 {% highlight objc %}
 CGFloat xRotationRate = motion.rotationRate.x;
@@ -66,9 +69,9 @@ CGFloat zRotationRate = motion.rotationRate.z;
 
 In particular, we'll be using the <code>yRotationRate</code> to determine our device tilt, however we'll also be using the <code>xRotationRate</code> and <code>zRotationRate</code>.
 
-If we take a look at [Paper](https://itunes.apple.com/us/app/paper-stories-from-facebook/id794163692?mt=8), much of what makes it "feel right" is that there's little to no accidental movement triggered when you rotate the device along an axis other than the <code>y</code>. 
+If we take a look at [Paper](https://itunes.apple.com/us/app/paper-stories-from-facebook/id794163692?mt=8), much of what makes it "feel right" is that there's little to no accidental movement triggered when you rotate the device along an axis other than the <code>y</code>.
 
-To accomplish (or at the very least approximate) this, we'll use the <code>xRotationRate</code> and <code>zRotationRate</code> as a threshold for responding to our <code>yRotationRate</code>. 
+To accomplish (or at the very least approximate) this, we'll use the <code>xRotationRate</code> and <code>zRotationRate</code> as a threshold for responding to our <code>yRotationRate</code>.
 
 {% highlight objc %}
 if (fabs(yRotationRate) > (fabs(xRotationRate) + fabs(zRotationRate)))
@@ -77,11 +80,11 @@ if (fabs(yRotationRate) > (fabs(xRotationRate) + fabs(zRotationRate)))
 }
 {% endhighlight %}
 
-If we have a <code>yRotationRate</code> that is greater than the sum of the <code>xRotationRate</code> and <code>zRotationRate</code>, we'll assume that the movement was intentional and adjust our <code>UIScrollView</code> accordingly. 
+If we have a <code>yRotationRate</code> that is greater than the sum of the <code>xRotationRate</code> and <code>zRotationRate</code>, we'll assume that the movement was intentional and adjust our <code>UIScrollView</code> accordingly.
 
-Translating the device movement into scroll position is an instance where the dreaded magic number becomes a necessity. There's no direct analog we can use to translate between device motion and scroll position, it's a matter of playing with a multiplier until you find something that, again, "feels right". 
+Translating the device movement into scroll position is an instance where the dreaded magic number becomes a necessity. There's no direct analog we can use to translate between device motion and scroll position, it's a matter of playing with a multiplier until you find something that, again, "feels right".
 
-We also have to factor in the zoom scale of the image we're displaying so regardless of image dimensions, device motions translates into the same relative change in scroll position. 
+We also have to factor in the zoom scale of the image we're displaying so regardless of image dimensions, device motions translates into the same relative change in scroll position.
 
 {% highlight objc %}
 static CGFloat kRotationMultiplier = 5.f;
@@ -100,29 +103,29 @@ The <code>clampedContentOffsetForHorizontalOffset</code> is a simple method take
 {
   CGFloat maximumXOffset = self.panningScrollView.contentSize.width - CGRectGetWidth(self.panningScrollView.bounds);
   CGFloat minimumXOffset = 0.f;
-  
+
   CGFloat clampedXOffset = fmaxf(minimumXOffset, fmin(horizontalOffset, maximumXOffset));
   CGFloat centeredY = (self.panningScrollView.contentSize.height / 2.f) - (CGRectGetHeight(self.panningScrollView.bounds)) / 2.f;
-  
+
   return CGPointMake(clampedXOffset, centeredY);
 }
 {% endhighlight %}
 
-We've also inverted the rotation rate to mimic [Paper](https://itunes.apple.com/us/app/paper-stories-from-facebook/id794163692?mt=8)'s scroll direction when rotating the device (a detail I overlooked for far too long). 
+We've also inverted the rotation rate to mimic [Paper](https://itunes.apple.com/us/app/paper-stories-from-facebook/id794163692?mt=8)'s scroll direction when rotating the device (a detail I overlooked for far too long).
 
-At this stage, we'd have something that on [Paper](https://itunes.apple.com/us/app/paper-stories-from-facebook/id794163692?mt=8) does the job, but if we build and run our code now, we'll quickly notice a disconcerting jitter on movement. This is because we've done nothing to smooth or filter the changes. 
+At this stage, we'd have something that on [Paper](https://itunes.apple.com/us/app/paper-stories-from-facebook/id794163692?mt=8) does the job, but if we build and run our code now, we'll quickly notice a disconcerting jitter on movement. This is because we've done nothing to smooth or filter the changes.
 
-It's a bit _too_ accurate. 
+It's a bit _too_ accurate.
 
 ## Smoothing
 
-If we take another look at [Paper](https://itunes.apple.com/us/app/paper-stories-from-facebook/id794163692?mt=8), rotating the device causes the image to glide across the screen, coming to a slow rest when it reaches it's apex. In our current state, we glide with the finesse of a giraffe on ice. We not only need to smooth out the general movement but also incorporate an ease out function so we don't arrive at a complete stop. 
+If we take another look at [Paper](https://itunes.apple.com/us/app/paper-stories-from-facebook/id794163692?mt=8), rotating the device causes the image to glide across the screen, coming to a slow rest when it reaches it's apex. In our current state, we glide with the finesse of a giraffe on ice. We not only need to smooth out the general movement but also incorporate an ease out function so we don't arrive at a complete stop.
 
-Choosing the highest level of abstraction and only dropping down a level when the original doesn't meet the requirements or is not performant is a mindset that's prevalent throughout Cocoa and Core Foundation. We're provided with a wealth of options for common problems. Grand Central Dispatch and <code>NSOperationQueue</code>'s for asynchronous tasks, <code>UIView</code> and <code>CALayer</code> for displaying content on the screen and UIView block based animation and <code>CAAnimation</code> for animating that content. 
+Choosing the highest level of abstraction and only dropping down a level when the original doesn't meet the requirements or is not performant is a mindset that's prevalent throughout Cocoa and Core Foundation. We're provided with a wealth of options for common problems. Grand Central Dispatch and <code>NSOperationQueue</code>'s for asynchronous tasks, <code>UIView</code> and <code>CALayer</code> for displaying content on the screen and UIView block based animation and <code>CAAnimation</code> for animating that content.
 
-Each of these overlap in functionality to a large extent, but exist to tackle problems in a different way, depending on the requirement. 
+Each of these overlap in functionality to a large extent, but exist to tackle problems in a different way, depending on the requirement.
 
-By using UIView block based animation, we can tap into the power of Core Animation, provide an ease out function, not block user interaction and have our changes be relative to our current state, all with one call. 
+By using UIView block based animation, we can tap into the power of Core Animation, provide an ease out function, not block user interaction and have our changes be relative to our current state, all with one call.
 
 {% highlight objc %}
 static CGFloat kMovementSmoothing = 0.3f;
@@ -146,7 +149,7 @@ To implement the scroll bar, we're going to be using <code>CAShapeLayer</code> a
 
 We'll be using our <code>CADisplayLink</code> object to provide us with a display synchronized callback in which to poll the current position of our <code>UIScrollView</code> content and adjust our scroll bar accordingly. The benefit of using a <code>CADisplayLink</code> over an <code>NSTimer</code> for this kind of operation is that we can align our scroll bar changes to the potentially varying frame rate of the display.
 
-Setting up a <code>CADisplayLink</code> object is similar to that of an <code>NSTimer</code>; we create the <code>CADisplayLink</code>, set the target callback to fire at every screen refresh and add it to a run loop. 
+Setting up a <code>CADisplayLink</code> object is similar to that of an <code>NSTimer</code>; we create the <code>CADisplayLink</code>, set the target callback to fire at every screen refresh and add it to a run loop.
 
 {% highlight objc %}
 self.displayLink = [CADisplayLink displayLinkWithTarget:self selector:@selector(displayLinkUpdate:)];
@@ -157,7 +160,7 @@ You may notice we're adding our <code>CADisplayLink</code> object to the run loo
 
 As we're using block based animation to update our <code>UIScrollView</code>, we can't rely on the <code>contentOffset</code> property to be 1:1 with what is being displayed onscreen. Instead we'll be polling the <code>presentationLayer</code> which will provide us with a close approximation of what is being displayed.
 
-Unfortunately the properties we need aren't as easily identified on the <code>presentationLayer</code> as they are on <code>UIScrollView</code>, but it's not difficult to translate what we have to what we understand. 
+Unfortunately the properties we need aren't as easily identified on the <code>presentationLayer</code> as they are on <code>UIScrollView</code>, but it's not difficult to translate what we have to what we understand.
 
 To retrieve the current <code>contentOffset</code> and <code>contentSize</code>, we'll be using the <code>presentationLayers</code> from our <code>UIScrollView</code> and <code>UIImageView</code> respectively.
 
@@ -172,7 +175,7 @@ CGFloat contentWidth = CGRectGetWidth(panningImageViewPresentationLayer.frame);
 Once we have these, we need to calculate based on our <code>UIScrollView</code> width, what percentage of the content is visible and the position of the content relative to the size of the content.
 
 {% highlight objc %}
-CGFloat visibleWidth = CGRectGetWidth(self.panningScrollView.bounds);  
+CGFloat visibleWidth = CGRectGetWidth(self.panningScrollView.bounds);
 CGFloat clampedXOffsetAsPercentage = fmax(0.f, fmin(1.f, horizontalContentOffset / (contentWidth - visibleWidth)));
 
 CGFloat scrollBarWidthPercentage = visibleWidth / contentWidth;
@@ -189,9 +192,9 @@ All that is left now is to pass these values along to our <code>CAShapeLayer</co
 }
 {% endhighlight %}
 
-At this point, there's one more thing to take into account. It wasn't mentioned in the [previous post](/spark-camera/), but many <code>CALayer</code> properties provide an [implicit animation](https://developer.apple.com/library/ios/documentation/Cocoa/Conceptual/CoreAnimation_guide/AnimatableProperties/AnimatableProperties.html) that we conveniently overrode by providing our own <code>CABasicAnimations</code>. 
+At this point, there's one more thing to take into account. It wasn't mentioned in the [previous post](/spark-camera/), but many <code>CALayer</code> properties provide an [implicit animation](https://developer.apple.com/library/ios/documentation/Cocoa/Conceptual/CoreAnimation_guide/AnimatableProperties/AnimatableProperties.html) that we conveniently overrode by providing our own <code>CABasicAnimations</code>.
 
-In our case, this would cause our scroll bar updates to lag behind the actual <code>UIScrollView</code> updates while their animations completed. 
+In our case, this would cause our scroll bar updates to lag behind the actual <code>UIScrollView</code> updates while their animations completed.
 
 To get around this implicit animation, we need to remove the actions for the <code>strokeStart</code> and <code>strokeEnd</code> from our <code>CAShapeLayer</code>.
 
@@ -203,6 +206,6 @@ self.scrollBarLayer.actions = @{@"strokeStart": [NSNull null], @"strokeEnd": [NS
 
 <video src="/media/2014-02-12-facebook-paper-photo-panner/video/paper-finished.m4v" autoplay="true" loop="true"></video>
 
-Hopefully this post has provided some appreciation for the thought and finesse that has gone into this and other iOS controls. We've only just scratched the surface. 
+Hopefully this post has provided some appreciation for the thought and finesse that has gone into this and other iOS controls. We've only just scratched the surface.
 
 You can [checkout this project on Github](https://github.com/subjc/SubjectiveCPhotoPanner).
