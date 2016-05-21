@@ -1,8 +1,10 @@
 ---
 layout: post
 title:  "Going with the flow"
-date:   2016-04-14 15:15:00
+date:   2016-04-21 15:15:00
 description: "A look at UICollectionViewLayout"
+video: true
+video_mp4: "/media/2016-05-21-going-with-the-flow/video/dynamic_layout.m4v"
 author:
   name: Matt Delves
   url: https://twitter.com/mattdelves
@@ -12,7 +14,7 @@ For a long time, UICollectionViewLayout was a class that caused me to shy away f
 
 If you search google, you'll find a lot of articles presenting what is known as the 'Pinterest' layout. That is, a layout with two columns and the height of the cells are different. We'll be creating a form of this layout and then taking it a step further and applying some UIKit dynamics so that the flow of the cells when you scroll is fluid. There'll be a small spring as the cell rests in place after scrolling has stopped.
 
-A great way of getting to understand how this all fits together is to use a Playground. These are perfect for changing values and seeing the result straight away. I've included a playground with this post that is available on GitHub.
+A great way of getting to understand how this all fits together is to use a Playground. These are perfect for changing values and seeing the result straight away. I've included a playground with this post that is [available on GitHub](https://github.com/subjc/CollectionViewLayout).
 
 ## FlowLayout or Layout?
 
@@ -49,13 +51,15 @@ With regard to your layout, you will need to implement the function `layoutAttri
 
 ## Layout Attributes
 
-It can be observed that I've made some mention of this thing called Layout Attributes in the function calls mentioned above. Layout Attributes are what provides the collection view with information about the origin and size of the item.
+Layout Attributes are what provides the collection view with information about the origin and size of the item. As the functions mentioned above show, the way in which a layout is determined is via layout attributes.
 
 You will be dealing with the class `UICollectionViewLayoutAttributes` when creating the layout. For the layout being created, you should specify its `frame` attribute. This will tell the collection view where the origin of the cell is and also how large it is.
 
+There are other properties that can be set, though for our purposes only frame needs to be set.
+
 When creating the instance of UICollectionViewLayoutAttributes you need to initialize it with the index path of the item it represents. For a cell you use the initializer `init(forCellWithIndexPath indexPath: NSIndexPath)`. There are corresponding initializers for supplementary and decoreator views as well.
 
-Within the playground you'll see that the layout attributes are created by the following code:
+The layout attributes are created by the following code:
 
 {% highlight swift %}
 let staticAttributes: [UICollectionViewLayoutAttributes] = newlyVisible.map { path in
